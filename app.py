@@ -4,7 +4,7 @@ import openai
 app = Flask(__name__)
 
 # OpenAI API 키 설정
-openai.api_key = "YOUR_OPENAI_API_KEY"  # OpenAI API 키 입력
+client = openai.OpenAI(api_key="YOUR_OPENAI_API_KEY")  # 여기에 OpenAI API 키 입력
 
 @app.route('/')
 def home():
@@ -15,12 +15,13 @@ def webhook():
     data = request.get_json()
     user_message = data['userRequest']['utterance']  # 사용자가 보낸 메시지
 
-    # OpenAI ChatGPT API 호출
-    response = openai.ChatCompletion.create(
+    # ChatGPT API 호출 (최신 방식)
+    response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": user_message}]
     )
-    bot_message = response['choices'][0]['message']['content']
+
+    bot_message = response.choices[0].message.content  # ChatGPT의 응답 추출
 
     # 카카오톡 챗봇 응답 형식
     kakao_response = {
