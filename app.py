@@ -4,7 +4,8 @@ import openai
 app = Flask(__name__)
 
 # OpenAI API 클라이언트 생성
-client = openai.OpenAI(api_key="YOUR_OPENAI_API_KEY")  # 여기에 OpenAI API 키 입력
+client = openai.OpenAI(api_key="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
+")  # 여기에 OpenAI API 키 입력
 
 @app.route('/')
 def home():
