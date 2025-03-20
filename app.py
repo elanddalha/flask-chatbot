@@ -1,10 +1,16 @@
+import os
 from flask import Flask, request, jsonify
 import openai
+from dotenv import load_dotenv
+
+# .env 파일 로드
+load_dotenv()
 
 app = Flask(__name__)
 
-# OpenAI API 클라이언트 생성
-client = openai.OpenAI(api_key="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")  # 여기에 OpenAI API 키 입력
+# 환경 변수에서 OpenAI API 키 가져오기
+api_key = os.getenv("OPENAI_API_KEY")
+client = openai.OpenAI(api_key=api_key)
 
 @app.route('/')
 def home():
@@ -15,25 +21,27 @@ def webhook():
     data = request.get_json()
     user_message = data['userRequest']['utterance']  # 사용자가 보낸 메시지
 
-    # 최신 OpenAI API 호출 방식 적용
+    # OpenAI API 호출
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": user_message}]
     )
 
-    bot_message = response.choices[0].message.content  # ChatGPT의 응답 추출
+    bot_message = response.choices[0].message.content  # ChatGPT 응답 추출
 
-    # 카카오톡 챗봇 응답 형식
+    # 카카오톡 챗봇 응답 형식 적용
     kakao_response = {
         "version": "2.0",
         "template": {
             "outputs": [
                 {
                     "simpleText": {
-                        "text": bot_message
+                        "text": bot_message,
+                        "extra": {}  # 필요한 경우 추가 정보 입력 가능
                     }
                 }
-            ]
+            ],
+            "quickReplies": []  # 빠른 응답 버튼이 필요하면 추가 가능
         }
     }
 
