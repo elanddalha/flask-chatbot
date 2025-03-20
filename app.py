@@ -3,7 +3,7 @@ import openai
 
 app = Flask(__name__)
 
-# OpenAI API 키 설정
+# OpenAI API 클라이언트 생성
 client = openai.OpenAI(api_key="YOUR_OPENAI_API_KEY")  # 여기에 OpenAI API 키 입력
 
 @app.route('/')
@@ -15,7 +15,7 @@ def webhook():
     data = request.get_json()
     user_message = data['userRequest']['utterance']  # 사용자가 보낸 메시지
 
-    # ChatGPT API 호출 (최신 방식)
+    # 최신 OpenAI API 호출 방식 적용
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": user_message}]
