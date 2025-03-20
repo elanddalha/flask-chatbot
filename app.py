@@ -1,14 +1,10 @@
 import os
 from flask import Flask, request, jsonify
 import openai
-from dotenv import load_dotenv
-
-# .env 파일 로드
-load_dotenv()
 
 app = Flask(__name__)
 
-# 환경 변수에서 OpenAI API 키 가져오기
+# Render에서 설정한 환경 변수 사용 (GitHub에는 API 키 저장 ❌)
 api_key = os.getenv("OPENAI_API_KEY")
 client = openai.OpenAI(api_key=api_key)
 
