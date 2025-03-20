@@ -1,47 +1,51 @@
 import os
+import json
+import google.generativeai as genai
 from flask import Flask, request, jsonify
-import openai
 
+# Render 환경 변수에서 Google Gemini API 키 가져오기
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+# API 키 설정
+if not GEMINI_API_KEY:
+    raise ValueError("GEMINI_API_KEY가 설정되지 않았습니다. Render 환경 변수에서 설정하세요.")
+
+genai.configure(api_key=GEMINI_API_KEY)
+
+# Flask 앱 생성
 app = Flask(__name__)
 
-# Render에서 설정한 환경 변수 사용 (GitHub에는 API 키 저장 ❌)
-api_key = os.getenv("OPENAI_API_KEY")
-client = openai.OpenAI(api_key=api_key)
-
-@app.route('/')
-def home():
-    return "Chatbot Webhook is running!"
-
-@app.route('/webhook', methods=['POST'])
+@app.route("/webhook", methods=["POST"])
 def webhook():
-    data = request.get_json()
-    user_message = data['userRequest']['utterance']  # 사용자가 보낸 메시지
+    try:
+        # 카카오 챗봇에서 받은 데이터
+        req_data = request.get_json()
+        user_message = req_data["userRequest"]["utterance"]  # 사용자 입력
 
-    # OpenAI API 호출
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": user_message}]
-    )
+        # Gemini API에 요청 보내기
+        response = genai.generate_text(user_message)
 
-    bot_message = response.choices[0].message.content  # ChatGPT 응답 추출
-
-    # 카카오톡 챗봇 응답 형식 적용
-    kakao_response = {
-        "version": "2.0",
-        "template": {
-            "outputs": [
-                {
-                    "simpleText": {
-                        "text": bot_message,
-                        "extra": {}  # 필요한 경우 추가 정보 입력 가능
+        # 카카오 챗봇 응답 형식 변환
+        kakao_response = {
+            "version": "2.0",
+            "template": {
+                "outputs": [
+                    {
+                        "simpleText": {
+                            "text": response.result,
+                            "extra": {}
+                        }
                     }
-                }
-            ],
-            "quickReplies": []  # 빠른 응답 버튼이 필요하면 추가 가능
+                ],
+                "quickReplies": []
+            }
         }
-    }
 
-    return jsonify(kakao_response)
+        return jsonify(kakao_response)
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Flask 서버 실행
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
