@@ -15,6 +15,11 @@ genai.configure(api_key=GEMINI_API_KEY)
 # Flask 앱 생성
 app = Flask(__name__)
 
+# ✅ 기본 페이지 추가 ("/" 경로)
+@app.route("/")
+def home():
+    return "✅ Flask 서버 실행 중! 카카오 챗봇과 연결됨!"
+
 @app.route("/webhook", methods=["POST"])
 def webhook():
     try:
