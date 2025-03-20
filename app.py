@@ -71,5 +71,12 @@ def webhook():
         log_message(error_message)  # [로그] 에러 메시지 저장
         return jsonify({"error": str(e)}), 500
 
+@app.route("/logs", methods=["GET"])
+def get_logs():
+    with open(LOG_FILE, "r", encoding="utf-8") as log_file:
+        return "<pre>" + log_file.read() + "</pre>"
+
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
