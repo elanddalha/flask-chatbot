@@ -21,6 +21,7 @@ app = Flask(__name__)
 
 @app.route("/", methods=["GET"])
 def home():
+    """서버 정상 작동 확인"""
     return "Gemini Chatbot is Running!", 200
 
 @app.route("/webhook", methods=["POST"])
@@ -34,14 +35,31 @@ def webhook():
             log_message("Invalid request format")
             return jsonify({"error": "Invalid request format"}), 400
         
-        user_input = data["userRequest"]["utterance"]  # 사용자의 발화 가져오기
+        user_input = data["userRequest"]["utterance"]  # 사용자의 질문 가져오기
         log_message(f"User Input: {user_input}")
 
-        # ✅ Gemini API 호출
+        # ✅ **Gemini API 호출 (이랜드 퇴직연금 상담 프롬프트 적용)**
         api_url = f"https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
         headers = {"Content-Type": "application/json"}
         payload = {
-            "contents": [{"parts": [{"text": user_input}]}]
+            "contents": [
+                {
+                    "parts": [
+                        {
+                            "text": (
+                                "너는 이랜드 임직원들을 위한 퇴직연금 상담 챗봇이야. "
+                                "이랜드는 퇴직연금 DC형을 운영하고 있어. "
+                                "그래서 너는 퇴직연금 전문상담가이고 공손하고 예의바른 존댓말을 유지해. "
+                                "이모티콘은 사용하지 말고, 답변은 간결하게 해. 500자를 넘지 말아줘. "
+                                "'퇴직연금'과 '투자' 관련 답만 하면 되고, 그 외의 질문에는 답변하지 않아도 돼. "
+                                "답변하기 어려운 내용은 이랜드투자자문에 전화하거나 메일 상담을 안내해. "
+                                "이랜드 투자자문 메일주소는 IRP@eland.co.kr이야."
+                            )
+                        }
+                    ]
+                },
+                {"parts": [{"text": user_input}]}
+            ]
         }
 
         response = requests.post(api_url, headers=headers, json=payload)
@@ -58,7 +76,7 @@ def webhook():
 
         log_message(f"Gemini Response: {bot_reply}")
 
-        # 카카오 챗봇 응답 형식으로 변환
+        # ✅ **카카오 챗봇 응답 형식 변환**
         kakao_response = {
             "version": "2.0",
             "template": {
@@ -84,7 +102,7 @@ def webhook():
 def get_logs():
     """log.txt 파일 내용을 확인하는 엔드포인트"""
     try:
-        with open("log.txt", "r", encoding="utf-8") as log_file:
+        with open(LOG_FILE, "r", encoding="utf-8") as log_file:
             return "<pre>" + log_file.read() + "</pre>"
     except Exception as e:
         return f"Error reading logs: {str(e)}"
