@@ -91,3 +91,8 @@ def get_logs():
             return {"logs": log_file.read()}
     except Exception as e:
         return {"error": f"Error reading logs: {str(e)}"}
+
+import uvicorn
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
